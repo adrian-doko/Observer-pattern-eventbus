@@ -129,6 +129,21 @@ class TestPublisher(unittest.TestCase):
         self.assertFalse(adrian.notifications)
         self.assertTrue(article in blog.articles)
 
+    def test_article_without_tags_is_rejected(self):
+        # given
+        blog = Publisher()
+        article = Article(
+            "General News",
+            [],
+            "This article has no tags."
+        )
+
+        # when / then
+        with self.assertRaises(ValueError):
+            blog.publish(article)
+
+        self.assertFalse(article in blog.articles)
+
 
 class TestEventBus(unittest.TestCase):
     """Test adding, removing and dispatching listeners."""
