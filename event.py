@@ -51,13 +51,15 @@ class Subscriber:
             self.notifications.append(article.title)
 
 
-class Publisher:
-    """Publish articles and manage subscriptions."""
 
-    def __init__(self):
-        self.articles = []
-        self.subscribers = []
-        self.bus = EventBus()
+    def publish(self, article):
+        """Publish an article only if it has tags."""
+        if not article.tags:
+            raise ValueError("An article must have at least one tag.")
+
+        self.articles.append(article)
+        self.bus.emit("article_published", article)
+
 
     def subscribe(self, subscriber):
         """Register a subscriber for article events."""
