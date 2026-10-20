@@ -3,7 +3,13 @@
 
 import unittest
 
-from event import Article, EventBus, Publisher, Subscriber
+from event import (
+    Article,
+    EventBus,
+    MissingArticleTagsError,
+    Publisher,
+    Subscriber,
+)
 
 
 class TestPublisher(unittest.TestCase):
@@ -110,24 +116,20 @@ class TestPublisher(unittest.TestCase):
             ["Python for Arduino"]
         )
 
-    def test_article_without_tags_sends_no_notification(self):
+    def test_article_without_tags_is_rejected(self):
         # given
         blog = Publisher()
-        adrian = Subscriber("Adrian", ["Python"])
-        blog.subscribe(adrian)
-
         article = Article(
             "General News",
             [],
             "This article has no tags."
         )
 
-        # when
-        blog.publish(article)
+        # when / then
+        with self.assertRaises(MissingArticleTagsError):
+            blog.publish(article)
 
-        # then
-        self.assertFalse(adrian.notifications)
-        self.assertTrue(article in blog.articles)
+        self.assertFalse(article in blog.articles)
 
 
 class TestEventBus(unittest.TestCase):

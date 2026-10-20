@@ -2,6 +2,12 @@
 """Article notification system using the Observer pattern."""
 
 
+class MissingArticleTagsError(Exception):
+    """Raised when an article has no tags."""
+
+    pass
+
+
 class EventBus:
     """Manage event listeners and dispatch events."""
 
@@ -72,6 +78,11 @@ class Publisher:
             self.bus.remove("article_published", subscriber.notify)
 
     def publish(self, article):
-        """Store an article and notify subscribers."""
+        """Publish an article only if it has tags."""
+        if not article.tags:
+            raise MissingArticleTagsError(
+                "An article must have at least one tag."
+            )
+
         self.articles.append(article)
         self.bus.emit("article_published", article)
