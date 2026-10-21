@@ -22,6 +22,24 @@ class TestAuthor(unittest.TestCase):
         # then
         self.assertEqual(author.name, "John")
 
+class TestArticle(unittest.TestCase):
+    """Test article creation."""
+
+    def test_article_has_author(self):
+        # given
+        author = Author("John")
+
+        # when
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            author
+        )
+
+        # then
+        self.assertIs(article.author, author)
+
 
 class TestPublisher(unittest.TestCase):
     """Test publisher and subscriber behavior."""
