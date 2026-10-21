@@ -8,17 +8,6 @@ from event import (
     Subscriber,
 )
 
-"""Unit tests for the Observer Pattern project."""
-
-import unittest
-
-from event import (
-    Article,
-    EventBus,
-    MissingArticleTagsError,
-    Publisher,
-    Subscriber,
-)
 
 class TestAuthor(unittest.TestCase):
     """Test author creation."""
