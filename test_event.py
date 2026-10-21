@@ -1,4 +1,13 @@
 
+from event import (
+    Article,
+    Author,
+    EventBus,
+    MissingArticleTagsError,
+    Publisher,
+    Subscriber,
+)
+
 """Unit tests for the Observer Pattern project."""
 
 import unittest
@@ -10,6 +19,19 @@ from event import (
     Publisher,
     Subscriber,
 )
+
+class TestAuthor(unittest.TestCase):
+    """Test author creation."""
+
+    def test_author_has_name(self):
+        # given
+        name = "John"
+
+        # when
+        author = Author(name)
+
+        # then
+        self.assertEqual(author.name, "John")
 
 
 class TestPublisher(unittest.TestCase):
