@@ -177,6 +177,106 @@ class TestPublisher(unittest.TestCase):
 
         self.assertFalse(article in blog.articles)
 
+    def test_subscriber_receives_notification_by_author(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", authors=[john])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Arduino"]
+        )
+
+    def test_subscriber_receives_notification_by_topic(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Python"]
+        )
+
+    def test_matching_author_and_topic_sends_one_notification(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber(
+            "Anna",
+            tags=["Python"],
+            authors=[john]
+        )
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Python"]
+        )
+
+    def test_no_notification_when_author_and_topic_do_not_match(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        maria = Author("Maria")
+
+        subscriber = Subscriber(
+            "Anna",
+            tags=["Python"],
+            authors=[maria]
+        )
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertFalse(subscriber.notifications)
+        self.assertTrue(article in blog.articles)
+
 
 class TestEventBus(unittest.TestCase):
     """Test adding, removing and dispatching listeners."""
