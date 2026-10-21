@@ -39,10 +39,11 @@ class EventBus:
 class Article:
     """Represent an article with a title, tags and body."""
 
-    def __init__(self, title, tags, body):
+    def __init__(self, title, tags, body,author):
         self.title = title
         self.tags = tags
         self.body = body
+         self.body = author
 
 
 class Subscriber:
