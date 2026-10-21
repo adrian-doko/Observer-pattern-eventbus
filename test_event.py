@@ -1,4 +1,8 @@
 
+"""Unit tests for the Observer Pattern project."""
+
+import unittest
+
 from event import (
     Article,
     Author,
@@ -21,6 +25,7 @@ class TestAuthor(unittest.TestCase):
 
         # then
         self.assertEqual(author.name, "John")
+
 
 class TestArticle(unittest.TestCase):
     """Test article creation."""
@@ -49,11 +54,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -67,10 +74,12 @@ class TestPublisher(unittest.TestCase):
     def test_article_is_stored(self):
         # given
         blog = Publisher()
+        author = Author("John")
         article = Article(
             "Arduino Sensors",
             ["Arduino"],
-            "Learning about Arduino sensors"
+            "Learning about Arduino sensors",
+            author
         )
 
         # when
@@ -84,11 +93,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -106,11 +117,13 @@ class TestPublisher(unittest.TestCase):
 
         blog.subscribe(adrian)
         blog.unsubscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -129,11 +142,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python", "Arduino"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Python for Arduino",
             ["Python", "Arduino"],
-            "Using Python with Arduino"
+            "Using Python with Arduino",
+            author
         )
 
         # when
@@ -148,10 +163,12 @@ class TestPublisher(unittest.TestCase):
     def test_article_without_tags_is_rejected(self):
         # given
         blog = Publisher()
+        author = Author("John")
         article = Article(
             "General News",
             [],
-            "This article has no tags."
+            "This article has no tags.",
+            author
         )
 
         # when / then

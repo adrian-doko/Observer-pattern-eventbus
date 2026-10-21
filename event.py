@@ -1,14 +1,19 @@
 
+"""Article notification system using the Observer pattern."""
+
+
+class MissingArticleTagsError(Exception):
+    """Raised when an article has no tags."""
+
+    pass
+
+
 class Author:
     """Represent an author registered on the blog."""
 
     def __init__(self, name):
         self.name = name
 
-class MissingArticleTagsError(Exception):
-    """Raised when an article has no tags."""
-
-    pass
 
 class EventBus:
     """Manage event listeners and dispatch events."""
@@ -37,9 +42,9 @@ class EventBus:
 
 
 class Article:
-    """Represent an article with a title, tags and body."""
+    """Represent an article with a title, tags, body and author."""
 
-    def __init__(self, title, tags, body,author):
+    def __init__(self, title, tags, body, author):
         self.title = title
         self.tags = tags
         self.body = body
