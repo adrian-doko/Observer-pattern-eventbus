@@ -1,12 +1,14 @@
 
-"""Article notification system using the Observer pattern."""
+class Author:
+    """Represent an author registered on the blog."""
 
+    def __init__(self, name):
+        self.name = name
 
 class MissingArticleTagsError(Exception):
     """Raised when an article has no tags."""
 
     pass
-
 
 class EventBus:
     """Manage event listeners and dispatch events."""
