@@ -43,7 +43,7 @@ class Article:
         self.title = title
         self.tags = tags
         self.body = body
-         self.body = author
+        self.author = author
 
 
 class Subscriber:
