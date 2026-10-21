@@ -68,14 +68,6 @@ class Subscriber:
         if matches_tags or matches_author:
             self.notifications.append(article.title)
 
-    def notify(self, article):
-        """Store a notification if author or tags match."""
-        matches_tags = bool(self.tags.intersection(article.tags))
-        matches_author = article.author in self.authors
-
-        if matches_tags or matches_author:
-            self.notifications.append(article.title)
-
 
 class Publisher:
     """Publish articles and manage subscriptions."""
@@ -83,6 +75,7 @@ class Publisher:
     def __init__(self):
         self.articles = []
         self.subscribers = []
+        self.authors = []
         self.bus = EventBus()
 
     def subscribe(self, subscriber):
@@ -97,6 +90,12 @@ class Publisher:
             self.subscribers.remove(subscriber)
             self.bus.remove("article_published", subscriber.notify)
 
+    def register_author(self, author):
+        """Register a new author and emit an event."""
+        if author not in self.authors:
+            self.authors.append(author)
+            self.bus.emit("author_registered", author)
+
     def publish(self, article):
         """Publish an article only if it has tags."""
         if not article.tags:
@@ -107,15 +106,38 @@ class Publisher:
         self.articles.append(article)
         self.bus.emit("article_published", article)
 
-    def __init__(self):
-        self.articles = []
-        self.subscribers = []
-        self.authors = []
-        self.new_authors = []
-        self.bus = EventBus()
 
-    def register_author(self, author):
-        """Register a new author and emit an event."""
-        if author not in self.authors:
-            self.authors.append(author)
-            self.bus.emit("author_registered", author)
+class NewsletterService:
+    """Send newsletters after a threshold of new authors."""
+
+    def __init__(self, publisher, threshold=3):
+        self.publisher = publisher
+        self.threshold = threshold
+        self.new_authors = []
+        self.newsletters_sent = []
+
+        publisher.bus.add(
+            "author_registered",
+            self.on_author_registered
+        )
+
+    def on_author_registered(self, author):
+        """Collect authors and send a newsletter when ready."""
+        self.new_authors.append(author)
+
+        if len(self.new_authors) >= self.threshold:
+            self.send_newsletter()
+            self.new_authors.clear()
+
+    def send_newsletter(self):
+        """Notify subscribers about recently registered authors."""
+        author_names = [author.name for author in self.new_authors]
+        message = (
+            "New authors: " + ", ".join(author_names)
+            + ". You might be interested!"
+        )
+
+        for subscriber in self.publisher.subscribers:
+            subscriber.notifications.append(message)
+
+        self.newsletters_sent.append(message)
