@@ -68,6 +68,10 @@ class Subscriber:
         if matches_tags or matches_author:
             self.notifications.append(article.title)
 
+    def follow_author(self, author):
+        """Follow a new author."""
+        self.authors.add(author)
+
 
 class Publisher:
     """Publish articles and manage subscriptions."""

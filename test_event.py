@@ -316,6 +316,31 @@ class TestPublisher(unittest.TestCase):
         # then
         self.assertEqual(received, [john])
 
+    def test_subscriber_can_follow_new_author(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        subscriber.follow_author(john)
+        blog.publish(article)
+
+        # then
+        self.assertIn(john, subscriber.authors)
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Arduino"]
+        )
+
 
 class TestNewsletterService(unittest.TestCase):
     """Test newsletters for newly registered authors."""
