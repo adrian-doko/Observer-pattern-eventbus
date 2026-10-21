@@ -106,3 +106,16 @@ class Publisher:
 
         self.articles.append(article)
         self.bus.emit("article_published", article)
+
+    def __init__(self):
+        self.articles = []
+        self.subscribers = []
+        self.authors = []
+        self.new_authors = []
+        self.bus = EventBus()
+
+    def register_author(self, author):
+        """Register a new author and emit an event."""
+        if author not in self.authors:
+            self.authors.append(author)
+            self.bus.emit("author_registered", author)

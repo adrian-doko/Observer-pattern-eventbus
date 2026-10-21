@@ -277,6 +277,45 @@ class TestPublisher(unittest.TestCase):
         self.assertFalse(subscriber.notifications)
         self.assertTrue(article in blog.articles)
 
+    def test_author_registration(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        # when
+        blog.register_author(john)
+
+        # then
+        self.assertIn(john, blog.authors)
+
+    def test_duplicate_author_registration(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+
+        # when
+        blog.register_author(john)
+        blog.register_author(john)
+
+        # then
+        self.assertEqual(blog.authors, [john])
+
+    def test_author_registration_emits_event(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        received = []
+
+        def handler(author):
+            received.append(author)
+
+        blog.bus.add("author_registered", handler)
+
+        # when
+        blog.register_author(john)
+
+        # then
+        self.assertEqual(received, [john])
+
 
 class TestEventBus(unittest.TestCase):
     """Test adding, removing and dispatching listeners."""
