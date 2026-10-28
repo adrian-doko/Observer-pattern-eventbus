@@ -4,12 +4,48 @@
 import unittest
 
 from event import (
+    AnalyticsService,
     Article,
+    Author,
     EventBus,
     MissingArticleTagsError,
+    NewsletterService,
     Publisher,
     Subscriber,
 )
+
+
+class TestAuthor(unittest.TestCase):
+    """Test author creation."""
+
+    def test_author_has_name(self):
+        # given
+        name = "John"
+
+        # when
+        author = Author(name)
+
+        # then
+        self.assertEqual(author.name, "John")
+
+
+class TestArticle(unittest.TestCase):
+    """Test article creation."""
+
+    def test_article_has_author(self):
+        # given
+        author = Author("John")
+
+        # when
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            author
+        )
+
+        # then
+        self.assertIs(article.author, author)
 
 
 class TestPublisher(unittest.TestCase):
@@ -20,11 +56,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -38,10 +76,12 @@ class TestPublisher(unittest.TestCase):
     def test_article_is_stored(self):
         # given
         blog = Publisher()
+        author = Author("John")
         article = Article(
             "Arduino Sensors",
             ["Arduino"],
-            "Learning about Arduino sensors"
+            "Learning about Arduino sensors",
+            author
         )
 
         # when
@@ -55,11 +95,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -74,14 +116,15 @@ class TestPublisher(unittest.TestCase):
         # given
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python"])
-
         blog.subscribe(adrian)
         blog.unsubscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Learning Python",
             ["Python"],
-            "Python basics"
+            "Python basics",
+            author
         )
 
         # when
@@ -100,11 +143,13 @@ class TestPublisher(unittest.TestCase):
         blog = Publisher()
         adrian = Subscriber("Adrian", ["Python", "Arduino"])
         blog.subscribe(adrian)
+        author = Author("John")
 
         article = Article(
             "Python for Arduino",
             ["Python", "Arduino"],
-            "Using Python with Arduino"
+            "Using Python with Arduino",
+            author
         )
 
         # when
@@ -119,10 +164,12 @@ class TestPublisher(unittest.TestCase):
     def test_article_without_tags_is_rejected(self):
         # given
         blog = Publisher()
+        author = Author("John")
         article = Article(
             "General News",
             [],
-            "This article has no tags."
+            "This article has no tags.",
+            author
         )
 
         # when / then
@@ -130,6 +177,320 @@ class TestPublisher(unittest.TestCase):
             blog.publish(article)
 
         self.assertFalse(article in blog.articles)
+
+    def test_subscriber_receives_notification_by_author(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", authors=[john])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Arduino"]
+        )
+
+    def test_subscriber_receives_notification_by_topic(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Python"]
+        )
+
+    def test_matching_author_and_topic_sends_one_notification(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber(
+            "Anna",
+            tags=["Python"],
+            authors=[john]
+        )
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Python"]
+        )
+
+    def test_no_notification_when_author_and_topic_do_not_match(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        maria = Author("Maria")
+        subscriber = Subscriber(
+            "Anna",
+            tags=["Python"],
+            authors=[maria]
+        )
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertFalse(subscriber.notifications)
+        self.assertTrue(article in blog.articles)
+
+    def test_author_registration(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+
+        # when
+        blog.register_author(john)
+
+        # then
+        self.assertIn(john, blog.authors)
+
+    def test_duplicate_author_registration(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+
+        # when
+        blog.register_author(john)
+        blog.register_author(john)
+
+        # then
+        self.assertEqual(blog.authors, [john])
+
+    def test_author_registration_emits_event(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        received = []
+
+        def handler(author):
+            received.append(author)
+
+        blog.bus.add("author_registered", handler)
+
+        # when
+        blog.register_author(john)
+
+        # then
+        self.assertEqual(received, [john])
+
+    def test_subscriber_can_follow_new_author(self):
+        # given
+        blog = Publisher()
+        john = Author("John")
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+
+        article = Article(
+            "Learning Arduino",
+            ["Arduino"],
+            "Arduino basics",
+            john
+        )
+
+        # when
+        subscriber.follow_author(john)
+        blog.publish(article)
+
+        # then
+        self.assertIn(john, subscriber.authors)
+        self.assertEqual(
+            subscriber.notifications,
+            ["Learning Arduino"]
+        )
+
+
+class TestNewsletterService(unittest.TestCase):
+    """Test newsletters for newly registered authors."""
+
+    def test_no_newsletter_before_three_authors(self):
+        # given
+        blog = Publisher()
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+        newsletter = NewsletterService(blog)
+
+        # when
+        blog.register_author(Author("John"))
+        blog.register_author(Author("Maria"))
+
+        # then
+        self.assertFalse(subscriber.notifications)
+        self.assertFalse(newsletter.newsletters_sent)
+
+    def test_newsletter_sent_after_three_authors(self):
+        # given
+        blog = Publisher()
+        anna = Subscriber("Anna", tags=["Python"])
+        peter = Subscriber("Peter", tags=["Arduino"])
+        blog.subscribe(anna)
+        blog.subscribe(peter)
+        newsletter = NewsletterService(blog)
+
+        # when
+        blog.register_author(Author("John"))
+        blog.register_author(Author("Maria"))
+        blog.register_author(Author("Alex"))
+
+        # then
+        self.assertEqual(len(newsletter.newsletters_sent), 1)
+        self.assertIn("John", anna.notifications[0])
+        self.assertIn("Maria", anna.notifications[0])
+        self.assertIn("Alex", peter.notifications[0])
+        self.assertEqual(anna.notifications, peter.notifications)
+
+    def test_newsletter_counter_resets_after_sending(self):
+        # given
+        blog = Publisher()
+        newsletter = NewsletterService(blog)
+
+        # when
+        for name in ["John", "Maria", "Alex", "David", "Emma"]:
+            blog.register_author(Author(name))
+
+        # then
+        self.assertEqual(len(newsletter.newsletters_sent), 1)
+        self.assertEqual(len(newsletter.new_authors), 2)
+
+        # when
+        blog.register_author(Author("Sophia"))
+
+        # then
+        self.assertEqual(len(newsletter.newsletters_sent), 2)
+        self.assertFalse(newsletter.new_authors)
+
+
+class TestAnalyticsService(unittest.TestCase):
+    """Test blog analytics through events."""
+
+    def test_author_registration_is_counted(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+
+        # when
+        blog.register_author(Author("John"))
+        blog.register_author(Author("Maria"))
+
+        # then
+        self.assertEqual(analytics.authors_registered, 2)
+
+    def test_subscriber_registration_is_counted(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+        subscriber = Subscriber("Anna", tags=["Python"])
+
+        # when
+        blog.subscribe(subscriber)
+
+        # then
+        self.assertEqual(analytics.subscribers_registered, 1)
+
+    def test_unsubscription_is_counted(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+        subscriber = Subscriber("Anna", tags=["Python"])
+        blog.subscribe(subscriber)
+
+        # when
+        blog.unsubscribe(subscriber)
+
+        # then
+        self.assertEqual(analytics.subscribers_unsubscribed, 1)
+
+    def test_published_articles_are_counted(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+        author = Author("John")
+        article = Article(
+            "Learning Python",
+            ["Python"],
+            "Python basics",
+            author
+        )
+
+        # when
+        blog.publish(article)
+
+        # then
+        self.assertEqual(analytics.articles_published, 1)
+
+    def test_duplicate_author_is_not_counted_twice(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+        john = Author("John")
+
+        # when
+        blog.register_author(john)
+        blog.register_author(john)
+
+        # then
+        self.assertEqual(analytics.authors_registered, 1)
+
+    def test_rejected_article_is_not_counted(self):
+        # given
+        blog = Publisher()
+        analytics = AnalyticsService(blog.bus)
+        author = Author("John")
+        article = Article(
+            "General News",
+            [],
+            "An article without tags",
+            author
+        )
+
+        # when / then
+        with self.assertRaises(MissingArticleTagsError):
+            blog.publish(article)
+
+        self.assertEqual(analytics.articles_published, 0)
 
 
 class TestEventBus(unittest.TestCase):
