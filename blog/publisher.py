@@ -1,19 +1,17 @@
 
 """Manage blog publishing and subscriptions."""
 
-from .event_bus import EventBus
 from .exceptions import MissingArticleTagsError
 
 
 class Publisher:
     """Publish articles and manage subscriptions."""
 
-    def __init__(self):
+    def __init__(self, bus):
         self.articles = []
         self.subscribers = []
         self.authors = []
-        self.bus = EventBus()
-
+        self.bus = bus
     def subscribe(self, subscriber):
         """Register a subscriber and emit an event."""
         if subscriber not in self.subscribers:
