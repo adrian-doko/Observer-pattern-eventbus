@@ -4,6 +4,7 @@
 import unittest
 
 from blog.author import Author
+from blog.event_bus import EventBus
 from blog.newsletter_service import NewsletterService
 from blog.publisher import Publisher
 from blog.subscriber import Subscriber
@@ -14,7 +15,8 @@ class TestNewsletterService(unittest.TestCase):
 
     def test_no_newsletter_before_three_authors(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
         newsletter = NewsletterService(blog)
@@ -29,7 +31,8 @@ class TestNewsletterService(unittest.TestCase):
 
     def test_newsletter_sent_after_three_authors(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         anna = Subscriber("Anna", tags=["Python"])
         peter = Subscriber("Peter", tags=["Arduino"])
         blog.subscribe(anna)
@@ -50,7 +53,8 @@ class TestNewsletterService(unittest.TestCase):
 
     def test_newsletter_counter_resets_after_sending(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         newsletter = NewsletterService(blog)
 
         # when
