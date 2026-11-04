@@ -12,6 +12,7 @@ class Publisher:
         self.subscribers = []
         self.authors = []
         self.bus = bus
+
     def subscribe(self, subscriber):
         """Register a subscriber and emit an event."""
         if subscriber not in self.subscribers:
