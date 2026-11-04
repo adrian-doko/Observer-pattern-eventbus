@@ -6,6 +6,7 @@ import unittest
 from blog.analytics_service import AnalyticsService
 from blog.article import Article
 from blog.author import Author
+from blog.event_bus import EventBus
 from blog.exceptions import MissingArticleTagsError
 from blog.publisher import Publisher
 from blog.subscriber import Subscriber
@@ -16,8 +17,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_author_registration_is_counted(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
 
         # when
         blog.register_author(Author("John"))
@@ -28,8 +30,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_subscriber_registration_is_counted(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         subscriber = Subscriber("Anna", tags=["Python"])
 
         # when
@@ -40,8 +43,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_unsubscription_is_counted(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
 
@@ -53,8 +57,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_published_articles_are_counted(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         author = Author("John")
         article = Article(
             "Learning Python",
@@ -71,8 +76,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_duplicate_author_is_not_counted_twice(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         john = Author("John")
 
         # when
@@ -84,8 +90,9 @@ class TestAnalyticsService(unittest.TestCase):
 
     def test_rejected_article_is_not_counted(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         author = Author("John")
         article = Article(
             "General News",
