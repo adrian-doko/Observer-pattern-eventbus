@@ -5,6 +5,7 @@ import unittest
 
 from blog.article import Article
 from blog.author import Author
+from blog.event_bus import EventBus
 from blog.exceptions import MissingArticleTagsError
 from blog.publisher import Publisher
 from blog.subscriber import Subscriber
@@ -15,13 +16,11 @@ class TestPublisher(unittest.TestCase):
 
     def test_article_is_stored(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         article = Article(
-            "Learning Python",
-            ["Python"],
-            "Python basics",
-            author
+            "Learning Python", ["Python"], "Python basics", author
         )
 
         # when
@@ -32,13 +31,11 @@ class TestPublisher(unittest.TestCase):
 
     def test_article_without_tags_is_rejected(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         article = Article(
-            "General News",
-            [],
-            "Article without tags",
-            author
+            "General News", [], "Article without tags", author
         )
 
         # when / then
@@ -49,16 +46,13 @@ class TestPublisher(unittest.TestCase):
 
     def test_subscriber_receives_notification(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
-
         article = Article(
-            "Learning Python",
-            ["Python"],
-            "Python basics",
-            author
+            "Learning Python", ["Python"], "Python basics", author
         )
 
         # when
@@ -66,22 +60,18 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Learning Python"]
+            subscriber.notifications, ["Learning Python"]
         )
 
     def test_subscriber_receives_notification_by_author(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber("Anna", authors=[author])
         blog.subscribe(subscriber)
-
         article = Article(
-            "Learning Arduino",
-            ["Arduino"],
-            "Arduino basics",
-            author
+            "Learning Arduino", ["Arduino"], "Arduino basics", author
         )
 
         # when
@@ -89,26 +79,20 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Learning Arduino"]
+            subscriber.notifications, ["Learning Arduino"]
         )
 
     def test_matching_author_and_topic_sends_one_notification(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber(
-            "Anna",
-            tags=["Python"],
-            authors=[author]
+            "Anna", tags=["Python"], authors=[author]
         )
         blog.subscribe(subscriber)
-
         article = Article(
-            "Learning Python",
-            ["Python"],
-            "Python basics",
-            author
+            "Learning Python", ["Python"], "Python basics", author
         )
 
         # when
@@ -116,22 +100,18 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Learning Python"]
+            subscriber.notifications, ["Learning Python"]
         )
 
     def test_unsubscribed_user_receives_no_notification(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
-
         article = Article(
-            "Learning Python",
-            ["Python"],
-            "Python basics",
-            author
+            "Learning Python", ["Python"], "Python basics", author
         )
 
         # when
@@ -144,17 +124,14 @@ class TestPublisher(unittest.TestCase):
 
     def test_resubscribe_receives_notification(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
         blog.unsubscribe(subscriber)
-
         article = Article(
-            "Learning Python",
-            ["Python"],
-            "Python basics",
-            author
+            "Learning Python", ["Python"], "Python basics", author
         )
 
         # when
@@ -163,20 +140,18 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Learning Python"]
+            subscriber.notifications, ["Learning Python"]
         )
 
     def test_multiple_matching_tags_send_one_notification(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber(
-            "Anna",
-            tags=["Python", "Arduino"]
+            "Anna", tags=["Python", "Arduino"]
         )
         blog.subscribe(subscriber)
-
         article = Article(
             "Python for Arduino",
             ["Python", "Arduino"],
@@ -189,22 +164,18 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Python for Arduino"]
+            subscriber.notifications, ["Python for Arduino"]
         )
 
     def test_subscriber_receives_notification_by_topic(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         author = Author("John")
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
-
         article = Article(
-            "Python Basics",
-            ["Python"],
-            "Learning Python",
-            author
+            "Python Basics", ["Python"], "Learning Python", author
         )
 
         # when
@@ -212,27 +183,21 @@ class TestPublisher(unittest.TestCase):
 
         # then
         self.assertEqual(
-            subscriber.notifications,
-            ["Python Basics"]
+            subscriber.notifications, ["Python Basics"]
         )
 
     def test_no_notification_when_author_and_topic_do_not_match(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         john = Author("John")
         maria = Author("Maria")
         subscriber = Subscriber(
-            "Anna",
-            tags=["Python"],
-            authors=[maria]
+            "Anna", tags=["Python"], authors=[maria]
         )
         blog.subscribe(subscriber)
-
         article = Article(
-            "Arduino Basics",
-            ["Arduino"],
-            "Learning Arduino",
-            john
+            "Arduino Basics", ["Arduino"], "Learning Arduino", john
         )
 
         # when
@@ -244,16 +209,13 @@ class TestPublisher(unittest.TestCase):
 
     def test_subscriber_can_follow_new_author(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         john = Author("John")
         subscriber = Subscriber("Anna", tags=["Python"])
         blog.subscribe(subscriber)
-
         article = Article(
-            "Arduino Basics",
-            ["Arduino"],
-            "Learning Arduino",
-            john
+            "Arduino Basics", ["Arduino"], "Learning Arduino", john
         )
 
         # when
@@ -263,13 +225,13 @@ class TestPublisher(unittest.TestCase):
         # then
         self.assertIn(john, subscriber.authors)
         self.assertEqual(
-            subscriber.notifications,
-            ["Arduino Basics"]
+            subscriber.notifications, ["Arduino Basics"]
         )
 
     def test_author_registration(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         john = Author("John")
 
         # when
@@ -280,7 +242,8 @@ class TestPublisher(unittest.TestCase):
 
     def test_duplicate_author_registration(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         john = Author("John")
 
         # when
@@ -292,14 +255,15 @@ class TestPublisher(unittest.TestCase):
 
     def test_author_registration_emits_event(self):
         # given
-        blog = Publisher()
+        bus = EventBus()
+        blog = Publisher(bus)
         john = Author("John")
         received = []
 
         def handler(author):
             received.append(author)
 
-        blog.bus.add("author_registered", handler)
+        bus.add("author_registered", handler)
 
         # when
         blog.register_author(john)
