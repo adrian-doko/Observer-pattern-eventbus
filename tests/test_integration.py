@@ -6,6 +6,7 @@ import unittest
 from blog.analytics_service import AnalyticsService
 from blog.article import Article
 from blog.author import Author
+from blog.event_bus import EventBus
 from blog.newsletter_service import NewsletterService
 from blog.publisher import Publisher
 from blog.subscriber import Subscriber
@@ -16,8 +17,9 @@ class TestBlogIntegration(unittest.TestCase):
 
     def test_complete_blog_workflow(self):
         # given
-        blog = Publisher()
-        analytics = AnalyticsService(blog.bus)
+        bus = EventBus()
+        blog = Publisher(bus)
+        analytics = AnalyticsService(bus)
         NewsletterService(blog)
 
         anna = Subscriber("Anna", tags=["Python"])
@@ -39,6 +41,7 @@ class TestBlogIntegration(unittest.TestCase):
 
         # when
         anna.follow_author(john)
+
         article = Article(
             "Arduino Basics",
             ["Arduino"],
